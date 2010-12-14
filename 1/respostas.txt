@@ -1,0 +1,155 @@
+1 -------------------------------
+
+select * from
+empregado e
+inner join departamento d on (d.dnum = e.dept)
+where
+e.salario > 5000 and d.dnome = 'D5'
+
+
+2 -------------------------------
+
+select e.enome
+from empregado e
+inner join empregado sup on (e.superv = sup.cpf)
+where e.salario > 5000
+
+
+3 -------------------------------
+
+select e.enome, e.salario
+from empregado e
+inner join empregado sup on (e.superv = sup.cpf)
+where e.salario > sup.salario
+
+
+4 -------------------------------
+
+select *
+from projeto p
+inner join departamento d on (d.dnum = p.numdept)
+inner join empregado e on (e.cpf = d.gerente)
+
+
+5 -------------------------------
+
+select distinct p.pnome
+from projeto p
+left join departamento d on (d.dnum = p.numdept)
+left join trabalha_no tn on (p.pnum = tn.proj)
+inner join empregado e on (e.cpf = d.gerente or tn.emp = e.cpf)
+where
+UPPER(e.enome) = 'JOAO SILVA'
+
+
+6 -------------------------------
+
+select e.cpf
+from empregado e
+where
+e.cpf NOT IN (select emp from trabalha_no)
+
+
+7 -------------------------------
+
+select e.*
+from empregado e
+inner join trabalha_no tn on (e.cpf = tn.emp)
+where
+tn.proj > ANY (select pnum from projeto)
+
+
+8 -------------------------------
+
+select e.*
+from empregado e
+inner join trabalha_no tn on (e.cpf = tn.emp)
+where
+tn.proj > ALL (select pnum from projeto)
+
+
+9 -------------------------------
+
+select e.enome, e.salario, d.dnome
+from empregado e
+left join departamento d on (d.gerente = e.cpf)
+
+
+10-------------------------------
+
+select e.enome
+from empregado e
+inner join departamento d on (d.dnum = e.dept and d.dnome = 'TRANSPORTE')
+group by e.enome
+
+
+11-------------------------------
+
+select AVG(e.salario)
+from empregado e
+inner join departamento d on (d.dnum = e.dept and d.dnome = 'VENDAS')
+
+
+12-------------------------------
+
+select e.enome, COUNT(tn.proj), SUM(tn.horas)
+from empregado e
+inner join trabalha_no tn on (tn.emp = e.cpf)
+group by e.enome
+
+
+13-------------------------------
+
+select count(*)
+from 
+(
+	select count(tn.proj), e.enome
+	from empregado e
+	inner join trabalha_no tn on (tn.emp = e.cpf)
+	group by e.enome
+	having COUNT(tn.proj) > 1
+) a
+
+
+14-------------------------------
+
+select count(tn.emp), sum(horas), p.pnome
+from projeto p
+inner join trabalha_no tn on (tn.proj = p.pnum)
+group by p.pnome
+
+
+15-------------------------------
+
+select avg(tn.horas), p.pnome
+from projeto p
+inner join trabalha_no tn on (tn.proj = p.pnum)
+group by p.pnome
+having count(tn.emp) > 3
+
+
+16-------------------------------
+select b.nome, b.num
+from
+(
+	select a.nome nome, avg(a.qtd) media, a.num num, a.qtd, a.soma
+	from
+	(
+		select count(tn.emp) qtd, p1.pnum num, p1.pnome nome, sum(tn.horas) soma
+		from projeto p1
+		inner join trabalha_no tn on (tn.proj = p1.pnum)
+		group by p1.pnum, p1.pnome
+	) a
+	group by a.nome, a.num, a.qtd, a.soma
+) b
+where
+b.qtd >= b.media
+and b.soma > (
+	select avg(c.soma)
+	from (
+		select p1.pnum num, sum(tn.horas) soma
+		from projeto p1
+		inner join trabalha_no tn on (tn.proj = p1.pnum)
+		group by p1.pnum
+	) c
+)

@@ -1,0 +1,15 @@
+1 -------------------------------
+
+create or replace function inserir_banco_horas(empregado integer, ano integer, mes integer)
+returns integer as
+$body$
+	declare
+		vLinhas Integer default 0;
+	begin
+		insert into banco_horas(emp_matricula, ban_ano, ban_mes, ban_total_horas)
+		values (empregado, ano, mes, 0);
+		get diagnostics vLinhas = row_count;
+		return vLinhas;
+	end;
+$body$
+language 'plpgsql';
